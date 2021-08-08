@@ -5,10 +5,18 @@ import json
 
 app = Flask(__name__)
 
+HOST = '0.0.0.0'
+PORT = 8080
+
 
 def pre_process_request(request_: flask.Request) -> bool:
-    # noinspection PyBroadException
+    """
+    This simply looks at the payload of a request and returns True or False
+    depending on if the payload is JSON, and includes
+    "test_key":"malicious"
+    """
 
+    # noinspection PyBroadException
     try:
         payload_string = request_.data.decode()
         payload = json.loads(payload_string)
@@ -31,9 +39,8 @@ def proxy(path):
     if pre_process_request(request):
         return get(request.url).content
     else:
-        return Response("Malicious JSON", 451)
+        return Response("Malicious JSON", 403)
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
-    # app.run(host='0.0.0.0', port=8080)
+    app.run(host=HOST, port=PORT)

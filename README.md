@@ -11,8 +11,10 @@ This will look for any incoming payload that has:
 }
 ```
 
-If that key is found, it will respond with a 451 (Legally unable to respond) error. 
+If that key is found, it will respond with a 403 (Forbidden) error. 
 
-The requirements are pinned due to a bug in the Werkzeug library. If you use the latest versions, you can not 
-debug this app in pycharm.
+When started the server will run on `0.0.0.0/8080`. You can change this in proxy_main.py
+
+*NOTE:* The requirement versions are important due to a bug in the Werkzeug library. If you use the latest versions, 
+you can not debug this app in pycharm.
 
