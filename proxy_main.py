@@ -1,15 +1,9 @@
-"""
-Mostly taken from
-https://medium.com/@zwork101/making-a-flask-proxy-server-online-in-10-lines-of-code-44b8721bca6
-"""
-
 import flask
 from flask import Flask, request, Response
 from requests import get
 import json
 
 app = Flask(__name__)
-SITE_NAME = 'https://google.com/'
 
 
 def pre_process_request(request_: flask.Request) -> bool:
