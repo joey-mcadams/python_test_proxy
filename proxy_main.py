@@ -24,7 +24,7 @@ def pre_process_request(request_: flask.Request) -> bool:
             if payload.get("test_key", None) == "malicious":
                 return False
 
-    # This is terrible practice, to broad exception.
+    # This is terrible practice, too broad exception.
     # However, I didn't want to deal with the all the exceptions that can happen
     # if the payload isn't actually JSON or even text
     except Exception as e:
