@@ -1,45 +1,40 @@
-import flask
+import copy
+
 from flask import Flask, request, Response
-from requests import get
-import json
+
+import proxy_main
+from util.request_pre_processor import is_invalid_key_present, is_repeat_request
+
+import requests
+import urllib
+import logging
+
+from config import *
 
 app = Flask(__name__)
 
-HOST = '0.0.0.0'
-PORT = 8080
+LAST_REQUEST = None
 
-
-def pre_process_request(request_: flask.Request) -> bool:
-    """
-    This simply looks at the payload of a request and returns True or False
-    depending on if the payload is JSON, and includes
-    "test_key":"malicious"
-    """
-
-    # noinspection PyBroadException
-    try:
-        payload_string = request_.data.decode()
-        payload = json.loads(payload_string)
-        if "test_key" in payload.keys():
-            if payload.get("test_key", None) == "malicious":
-                return False
-
-    # This is terrible practice, too broad exception.
-    # However, I didn't want to deal with the all the exceptions that can happen
-    # if the payload isn't actually JSON or even text
-    except Exception as e:
-        pass
-
-    return True
-
-
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
+@app.route('/', methods=HTTP_METHODS)
+@app.route('/<path:path>', methods=HTTP_METHODS)
 def proxy(path):
-    if pre_process_request(request):
-        return get(request.url).content
-    else:
+    # Check for malicous key
+    if is_invalid_key_present(request):
         return Response("Malicious JSON", 403)
+
+    # Check for repeats
+    result = is_repeat_request(request, proxy_main.LAST_REQUEST)
+    if result:
+        logging.warning("Repeat request found!")
+        logging.warning(request)
+    proxy_main.LAST_REQUEST = copy.copy(request)
+
+    # Good request, send it
+    return requests.request(method=request.method,
+                            url=urllib.parse.urljoin(URL_BASE, path),
+                            headers=request.headers,
+                            data=request.data
+                            ).content
 
 
 if __name__ == '__main__':
