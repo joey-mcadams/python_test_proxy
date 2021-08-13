@@ -9,7 +9,7 @@ import requests
 import urllib
 import logging
 
-from config import *
+from config.config import *
 
 app = Flask(__name__)
 

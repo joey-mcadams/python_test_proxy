@@ -1,5 +1,6 @@
 from unittest import TestCase
 from util.request_pre_processor import is_invalid_key_present, is_repeat_request
+from config.config import BAD_KEY
 import logging
 
 
@@ -17,16 +18,38 @@ class MockRequest2():
 
 class TestRequestPreProcessor(TestCase):
     def setUp(self):
-        self.bad_json_string = '{ "is_malicious": true }'
-        self.bad_json_string2 = '{ "hidden": { "is_malicious": true } }'
+        self.bad_json_string = f'{{ "{BAD_KEY}": true }}'
+        self.bad_json_string2 = f'{{ "hidden": {{ "{BAD_KEY}": true }} }}'
+        self.bad_json_object_in_list_in_object = f'{{ "hidden": [{{ "{BAD_KEY}": true }}] }}'
+        self.bad_json_object_in_list = f'["good_value", "good_value", {{ "{BAD_KEY}": true }}]'
         self.good_json_string = '{ "something": "not malicious" }'
         self.good_json_string_empty_key = '{ "data": null }'
+        self.good_string = "This is a string: is_malicious"
         self.good_json_string_empty = '{}'
         self.good_payload_empty = None
 
 ##############################
 # is_invalid_key_present Tests
 ##############################
+
+    def test_invalid_key_present_in_list(self):
+        test_request = MockRequest(self.bad_json_object_in_list)
+        result = is_invalid_key_present(test_request)
+        logging.info(result)
+        self.assertTrue(result)
+
+
+    def test_invalid_key_present_in_list(self):
+        test_request = MockRequest(self.bad_json_object_in_list_in_object)
+        result = is_invalid_key_present(test_request)
+        logging.info(result)
+        self.assertTrue(result)
+
+    def test_invalid_key_present_good_string(self):
+        test_request = MockRequest(self.good_string)
+        result = is_invalid_key_present(test_request)
+        logging.info(result)
+        self.assertFalse(result)
 
     def test_invalid_key_present_bad_json(self):
         test_request = MockRequest(self.bad_json_string)
